@@ -15,7 +15,7 @@ If not create a new one under https://github.com/
 2. Click on Fork on the top Right Corner 
 <br><img src="./images/forkbutton.PNG" width="400"/>
 1. When asked where to Fork the Project Select the Default location which is most likely your Account name
-2. Profit :)
+2. Profit :) The Process can take a little time.
 
 
 ## Whats Next?
