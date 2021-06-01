@@ -18,7 +18,13 @@ If not create a new one under https://github.com/
 ## Fork Repostiroy <a name="Step2"></a>
 
 1. Open https://github.com/cap-flie/webapp
-2. Click on Fork on the top Right Corner
-![](/images/forkutton.PNG)
+2. Click on Fork on the top Right Corner 
+   ![Forkbutton](./images/forkbutton.PNG)
+3. When asked where to Fork the Project Select the Default location which is most likely your Account name
+4. Profit :)
+
 
 ## Whats Next? <a name="Step3"></a>
+
+For the Next Step you will Setup the Connection Data between GitHub and Azure where your Resources will be Deployed.
+The needed Credentials will only be Provided during the Hackathon.
