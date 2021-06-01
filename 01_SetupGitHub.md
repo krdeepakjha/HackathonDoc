@@ -19,10 +19,9 @@ If not create a new one under https://github.com/
 
 1. Open https://github.com/DevOps-Gilde/webapp
 2. Click on Fork on the top Right Corner 
-
-![Forkbutton](./images/forkbutton.PNG)
-3. When asked where to Fork the Project Select the Default location which is most likely your Account name
-4. Profit :)
+<br>![Forkbutton](./images/forkbutton.PNG)
+1. When asked where to Fork the Project Select the Default location which is most likely your Account name
+2. Profit :)
 
 
 ## Whats Next? <a name="Step3"></a>
