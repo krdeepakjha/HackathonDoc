@@ -1,2 +1,0 @@
-# azure-dev-hackathon
-
