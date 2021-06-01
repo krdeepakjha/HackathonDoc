@@ -1,23 +1,14 @@
 # Infrastructure Repository and Pipeline
 
-# Content
+You should now have Completed the Following things:
+1. Setup your GitHub Account
+2. Setup the Example Code in your Account
+3. Added the Repository Secrets to the Example Code
 
-[1.Initialize the repository 2](#_Toc66790278)
+Next you will get an Overview over the Example Code to Setup your first own Website on Azure. This will only be the most basic Infrastructure Setup. In a later Step we will then alter the Websites Content.
 
-[2.Set up the variable group 5](#_Toc66790284)
-
-[3.Set up and run the pipeline 8](#_Toc66790288)
-
-1.
-#
-## Initialize the repository
-
-  1.
 # Navigate to your repository in your project
 
-![](RackMultipart20210601-4-1dmcaox_html_c386c7ef231324d8.gif)
-
-  1.
 # Initialize your repository with a generic readme file by clicking on Initialize
 
 ![](RackMultipart20210601-4-1dmcaox_html_4508c634d999caf2.gif)
