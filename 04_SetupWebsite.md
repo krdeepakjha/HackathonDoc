@@ -57,9 +57,7 @@ jobs:
 Our Code seems to be corrupted maybe these notes of our Developer can help you fix it.
 
 ```
-Run on ubuntu-latest
-Then check out the Repository
-The `node-version` should be "10.x"
+Where did i do this Login before?
 ```
 
 ```
@@ -70,13 +68,15 @@ npm run test --if-present
 ```
 
 ```
-Where did i do this Login before?
+Run on ubuntu-latest
+Then check out the Repository
+The `node-version` should be "10.x"
 ```
 
 ```
 azure/webapps-deploy@v2
 
-Needs the `app-name` and a package location. Where did i store the webapps Name again?
+Needs the `app-name` and a `package` location. Where did i store the webapps Name again?
 ```
 # 2. Run your Pipeline
 
