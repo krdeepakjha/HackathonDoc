@@ -26,6 +26,8 @@ Your first Task is to go into your Repository and look at the Following file.
 
 >_Warning: The formatting of YAML (yml) files is based on spaces and tabs and therefore the following lines should be copied with care.
 > It is advised to use Visual Studio Code to validate the copied file._
+> <br> [How to work with Git Locally](/01.5_SetupGit.md)
+
 
 `#File: .github/workflows/azure_infra.yml`
 ```

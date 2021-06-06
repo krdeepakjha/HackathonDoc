@@ -1,130 +1,102 @@
-# Webapp Repository and Pipeline
+# Infrastructure Repository and Pipeline
 
-# Content
+## Introduction
 
-[1.Initialize the repository 2](#_Toc66790278)
+You should now have Completed the Following things:
+1. Setup your GitHub Account
+2. Setup the Example Code in your Account
+3. Added the Repository Secrets to the Example Code
+4. Setup the initial WebApp on Azure
 
-[2.Set up the variable group 5](#_Toc66790284)
+In this task we will Push our own Website Content to our freshly created Azure Website.
 
-[3.Set up and run the pipeline 8](#_Toc66790288)
+If you get Stuck here you may ask us for Help. We can also provide a Complete solution.
+# 1. Setting up the Website Pipeline
 
-#
-## Initialize the repository
+>_Warning: The formatting of YAML (yml) files is based on spaces and tabs and therefore the following lines should be copied with care.
+> It is advised to use Visual Studio Code to validate the copied file._
+> <br>[How to work with Git Locally](/01.5_SetupGit.md)
 
-# Import Repository
+`# File: .github/workflows/azure_webapp.yml`
+```
+on: 
+  workflow_dispatch:
 
-We import an existing repository that already contains the web application we want to deploy
+name: app
 
+jobs:
+  build-and-deploy:
+    runs-on: **
+    steps:
+    # checkout the repo
+    - name: 'Checkout Github Action' 
+      uses: actions/checkout@master
+      
+    - name: Setup Node 10.x
+      uses: actions/setup-node@v1
+      with:
+        **
 
-# Import a new repository for you webapp
+    - name: 'npm install, build, and test'
+      run: |
+        **
 
-Clone URL:
-# Add a new file to your repository
+    - name: Azure Login
+      uses: azure/login@v1
+      with:
+        **
 
-# Give it a meaningful name with the suffix &quot;.yml&quot;
+    - name: 'Azure webapp deploy'
+      uses: azure/webapps-deploy@v2
+      with:
+        **
+        package: ${{ github.workspace }}/app
 
-# Now start writing the webapp pipeline to build and deploy the webapp to the **App Service Plan** in Azure step by step
+```
 
+Our Code seems to be corrupted maybe these notes of our Developer can help you fix it.
 
-First we need to set a trigger which will run the pipeline after every commit on this repository:
- (we set it to none to avoid unwanted pipeline runs)
+```
+Run on ubuntu-latest
+Then check out the Repository
+The `node-version` should be "10.x"
+```
 
-trigger: none
+```
+To build the npm dependencies i need to Change Directory into the  app folder and then run
+npm install
+npm run build --if-present
+npm run test --if-present
+```
 
-Next, we will make the variable group available to the pipeline. From now on we can reference any variable that is held in the variable group under libraries (described under 2):
+```
+Where did i do this Login before?
+```
 
-variables:
- - group: infravars
+```
+azure/webapps-deploy@v2
 
- After that, we create two stages, Build and Deploy and define all necessary steps and tasks within steps:
+Needs the `app-name` and a package location. Where did i store the webapps Name again?
+```
+# 2. Run your Pipeline
 
-The first stage installs all the application dependencies, builds the web app and uploads the build app
+After you Set up your Secrets and fixed the Code in your Repository.
+You can try to run your Workflow.
+To do so go to Actions and select the app workflow on the Left site.
 
-stages:
- - stage: Build
- displayName: Build stage
- jobs:
- - job: Build
- displayName: Build
- pool:
- vmImage: &#39;ubuntu-latest&#39;
+Now Select Run workflow on the Right side.
 
-steps:
- - task: NodeTool@0
- inputs:
- versionSpec: &#39;10.x&#39;
- displayName: &#39;Install Node.js&#39;
- - script: |
- npm install
- npm run build --if-present
- workingDirectory: &#39;$(System.DefaultWorkingDirectory)/app&#39;
- displayName: &#39;npm install, build and test&#39;
+<br><img src="./images/runWorkflow.PNG" width="800"/><br>
 
-- task: ArchiveFiles@2
- displayName: &#39;Archive files&#39;
- inputs:
- rootFolderOrFile: &#39;$(System.DefaultWorkingDirectory)/app&#39;
- includeRootFolder: false
- archiveType: zip
- archiveFile: $(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip
- replaceExistingArchive: true
+## Workflow Progress
 
-- upload: $(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip
- artifact: drop
+Wait for your Workflow to finish.
+If the Task does not run through you may ask one of us to Help you out.
+## Check your WebApp is online after approx. 2 minutes
 
-In the second stage we then run the uploaded web application on the infrastructure we provided earlier
+https://`[yourWebAppName]`.azurewebsites.net/
 
-- stage: Deploy
- displayName: Deploy stage
- dependsOn: Build
- condition: succeeded()
- jobs:
- - deployment: Deploy
- displayName: Deploy
- environment: $(wa)
- pool:
- vmImage: &#39;ubuntu-latest&#39;
- strategy:
- runOnce:
- deploy:
- steps:
- - task: AzureWebApp@1
- displayName: &#39;Azure Web App Deploy: $(wa)&#39;
- inputs:
- azureSubscription: $(so)
- appType: webAppLinux
- appName: $(wa)
- runtimeStack: &#39;NODE|10.10&#39;
- package: $(Pipeline.Workspace)/drop/$(Build.BuildId).zip
- startUpCommand: &#39;npm run start&#39;
+You should see a &quot;Hey, Node developers&quot; welcome screen.
 
-if we are finished, we need to commit our changes
-
-If you want to learn more about the concept of a pipeline you can do it here:
-
- https://docs.microsoft.com/de-de/azure/devops/pipelines/get-started/key-pipelines-concepts?view=azure-devops
-
-
-# Set up the variable group
-
-We will reuse the variable group from infravars ;-)
-
-
-# Set up and run the pipeline
-
-
-# Now it is time for some rocket science, therefore click on the rocket and reference it to your pipeline
-
-# After all you can admire your work and launch the pipeline by clicking on RUN (upper right corner)
-
-# Now you can watch your pipeline running by clicking on the Job
-
-
-# After the pipeline has run you should see only green lights
-
-# Check your WebApp is online
-
-https://\&lt;yourWebAppName\&gt;.azurewebsites.net/
-
-**Congratulations, you have deployed your first WebApp on you own infrastructure.
- Now you can go ahead and change the code of your WebApp.**
+Congratulations, you have deployed your first WebApp infrastructure.
+ Now, you can go ahead and deploy some code to your WebApp.
