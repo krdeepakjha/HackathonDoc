@@ -16,6 +16,5 @@ Tasks to do:
 4. Create Infrastructure Pipeline [here](/03_SetupInfrastructure.md)
 5. Create WebApp Pipeline [here](/04_SetupWebsite.md)
 
-
-If at any Point you need assistance do not hesitate to ask.
-We are here to Help you.
+:white_check_mark: We also created a full working solution located in the branch [Solution](https://github.com/DevOps-Gilde/webapp/tree/solution) of your forked repository. 
+If at any Point you need assistance nevertheless do not hesitate to ask. We are here to Help you.
