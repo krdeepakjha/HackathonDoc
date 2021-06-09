@@ -39,13 +39,15 @@ In Real Customer Environments there are usually more detailed guidelines on how 
 This is the Connection Data needed for the Azure Subscription.
 
 For this Hackathon we will provide you with it:
+
+Secret:
 AZURE_CREDENTIALS =
-{
+`{
   "clientId": "#",
   "clientSecret": "#",
   "subscriptionId": "#",
   "tenantId": "#"
-}
+}`
 
 ### RG - ResourceGroup
 
@@ -63,6 +65,7 @@ https://docs.microsoft.com/en-us/azure/azure-resource-manager/management/manage-
 
 This is the Name of the App Service Plan which needs to be unique in our Subscription.
 
+Secret:
 ASP=
 `plan-[your suffix]`
 
