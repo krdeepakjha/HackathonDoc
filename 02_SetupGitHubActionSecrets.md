@@ -54,7 +54,7 @@ AZURE_CREDENTIALS =
 This is the Name of the Resource Group you will be using to Deploy your Website. During the Hackathon you will only have Access to the Following ResourceGroup:
 
 Secret:
-RG = 
+rg = 
 `ws-devops`
 
 If you want to know more about Resource Groups take a look here:
@@ -66,7 +66,7 @@ https://docs.microsoft.com/en-us/azure/azure-resource-manager/management/manage-
 This is the Name of the App Service Plan which needs to be unique in our Subscription.
 
 Secret:
-ASP=
+asp=
 `plan-[your suffix]`
 
 If you want to know more about App Service Plans take a look here:
@@ -75,6 +75,10 @@ https://docs.microsoft.com/en-us/azure/app-service/overview
 ### WEBAPP - WebApplication
 
 This is the Name of the Web Application which needs to be unique globally.
+
+Secret:
+webapp=
+`your web app name`
 
 If you want to know more about WebApps take a look here:
 https://docs.microsoft.com/en-us/azure/app-service/overview
