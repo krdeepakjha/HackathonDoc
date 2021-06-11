@@ -9,7 +9,7 @@ Please Setup your GitHub Account before the Hackathon and feel free to Contact u
 If you already have a GitHub Account you can use that one.
 If not create a new one under https://github.com/
 
-## Fork Repostiroy
+## Fork Repository
 
 1. Open https://github.com/DevOps-Gilde/webapp
 2. Click on Fork on the top Right Corner 
