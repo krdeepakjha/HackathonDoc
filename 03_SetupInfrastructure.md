@@ -7,7 +7,7 @@ You should now have Completed the Following things:
 2. Setup the Example Code in your Account
 3. Added the Repository Secrets to the Example Code
 
-Next you will get an Overview over the Example Code to Setup your first own Website on Azure. This will only be the most basic Infrastructure Setup. In a later Step we will then alter the Websites Content.
+Next you will get an Overview over the Example Code to Setup your first own Website on Azure via Terraform. This will only be the most basic Infrastructure Setup. In a later Step we will then alter the Websites Content.
 
 If you want to learn more about the concept of a pipeline you can do it here:
 
@@ -29,41 +29,46 @@ Your first Task is to go into your Repository and look at the Following file.
 > <br> [How to work with Git Locally](/01.5_SetupGit.md)
 
 
-`#File: .github/workflows/azure_infra.yml`
+`#File: .github/workflows/azure_tf.yml`
 ```
-on: 
-  workflow_dispatch:
+name: 'Terraform'
+ 
+on:
+  workflow_dispatch
 
-name: infra
+env:
+  ARM_CLIENT_ID: ${{ secrets.AZURE_AD_CLIENT_ID }}
+  ARM_CLIENT_SECRET: ${{ secrets.AZURE_AD_CLIENT_SECRET }}
+  ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+  ARM_TENANT_ID: ${{ secrets.AZURE_AD_TENANT_ID }}
 
 jobs:
-
-  deploy:
+  terraform:
+    name: 'Terraform'
     runs-on: ubuntu-latest
-    steps:
-    
-    - name: Azure Login
-    uses: azure/login@v1
-    with:
-        creds: ${{ secrets.AZURE_CREDENTIALS }}
-    
-    - name: Azure CLI script
-    uses: azure/CLI@v1
-    with:
-        inlineScript: |
-        az appservice plan create -g ${{ secrets.rg }} -n ${{ secrets.asp }} --is-linux --number-of-workers 1 --sku B1
-        az webapp create -g ${{ secrets.rg }} -p ${{ secrets.asp }} -n ${{ secrets.webapp }}  --runtime "node|10.14"
+    environment: developement
+ 
+    # Use the Bash shell regardless whether the GitHub Actions runner is ubuntu-latest, macos-latest, or windows-latest
+    defaults:
+      run:
+        shell: bash
+        working-directory: terraform
+ 
 ```
 
 ## Azure Cli
 
-The Pipeline we are Proposing here is using the Azure CLI to create the App Service Plan and the WebApp on Azure.
+The Pipeline we are Proposing here is using Terraform to create the Service Plan on Azure.
 
-Azure CLI Docs: 
-<br> https://docs.microsoft.com/de-de/cli/azure/what-is-azure-cli
+Github Terraform Doc: 
+<br> https://github.com/hashicorp/setup-terraform
 
 Azure AppServicePlan and WebApp: 
 <br> https://docs.microsoft.com/en-us/azure/app-service/overview
+
+## Pipeline Name
+
+Next we Specify the Name of our GitHub Action in our Example "`name: infra`".
 
 ## Triggers
 
@@ -72,14 +77,15 @@ The Code Starts by using "`on: workflow_dispatch`" which means one of the Trigge
 There are many Automatic triggers you can use, to learn more about Triggers check this:
 https://docs.github.com/en/actions/reference/events-that-trigger-workflows#workflow_dispatch
 
-## Pipeline Name
+## Environment Variables:
 
-Next we Specify the Name of our GitHub Action in our Example "`name: infra`".
-
+The Environment Variables are set in the Code Runners the Pipeline uses. In our Example these are known Variables by Terraform which it uses to Authenticate against Azure.
 ## Code runner
 
 After we define the Triggers and the Name of the workflow we need to Specify its "`jobs`".
-In our Example we only need one Job "`deploy`".
+In our Example we split the Pipeline into two Jobs "`terraform`" and "`terraformapply`".
+
+This is done to allow for manual Approval. More on that later.
 
 Next we Specify what image we Expect our job to run on:
 "`runs-on: ubuntu-latest`"
@@ -92,49 +98,201 @@ jobs:
     
 ```
 
+## Defaults
+
+In Our Case the terraform Code is Located in a Subdirectory why we need to define the "`working-directory`" for all upcoming Terraform Tasks. 
+
 To learn more about the Workflow Syntax and Jobs visit:
 https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions#jobs
 
-
-## Authentication
-
-The first thing the Workflow will do is to Authenticate via the Build in Feature "`uses: azure/login@v1`" and the use of the Connection String in Stored in "`secrets.AZURE_CREDENTIALS`"
-
-```
-    - name: Azure Login
-      uses: azure/login@v1
-      with:
-        creds: ${{ secrets.AZURE_CREDENTIALS }}
-```
-
 ## Deployment of AppService and WebApp
 
-Next the Script creates with the Build in Azure CLI "`uses: azure/CLI@v1`" the AppService Plan and the corresponding WebApp. 
+Next the Script manages Terraform with the Build in Terraform CLI "`uses: hashicorp/setup-terraform@v1`".
+```
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - uses: hashicorp/setup-terraform@v1
+
+    - run: terraform init
+    
+    - name: Terraform fmt
+      id: fmt
+      run: terraform fmt -check
+      continue-on-error: false
+
+    - name: Terraform Plan
+      id: plan
+      run: terraform plan -no-color
+```
+
+## Checkout
+
+Checkout gets the Branch from Github onto the Worker.
+As the Worker is created everytime from Scratch every Job needs to get the Sources again.
+
+## terraform cli
+
+`   - uses: hashicorp/setup-terraform@v1`
+Defines the Buildin Commands to be available on the worker from GitHub.
+
+The CLI documentation can be found here.
+https://learn.hashicorp.com/tutorials/terraform/azure-build?in=terraform/azure-get-started
+
+## terraform init
+
+Terraform Init sets up the Current Project Environment and connects to the Azure Storage Account Defined in your "`terraform/main.tf`"
+
+## Terraform fmt
+Terraform fmt allows you to Format your Code automatically so it matches the expected Syntax. It Beautyfies your code aswell for better readablity. 
+
+We set "`continue-on-error: false`" so you get Automatic Linting and the Pipeline doesnt allow properly Formatted code.
+
+## Terraform Plan
+Creates a Plan of the Changes needed to be done on Azure to accomplish the defined Settings in your Terraform Code.
+
+## Dependencies and Environments
+
+You can Setup Concurrent or sequential Tasks with Pipelines. In our example we made a Sequential Task by definining defining that the Seconds Task needs the First:
+
+"`needs: [terraform]`"
+
+Also we Setup two different Environments "production" and "developement" those are necessary for an Approval Workflow. More on that later.
+
+
+## Terraform apply
+
+The Final Step is to Apply the Terraform Code which will Setup the Defined Environment on Azure.
+
+## Terraform main.tf
+
+Your /terrform/main.tf contains all the Setting for the Desired Infrastructure on Azure.
+
+Every Terraform Project needs a Backend to Store the State by default a Local file will be used but there are many Different Available Backends. In our Case we Provide you with an Azure Storageaccount.
+Which is Defined by first Stating the Resource Group and Storage Account Name. Inside a Storage Account we also Specify an Existing Container Name. The here Selected Key is the State File Terraform will use. If it doesnt exist it will be created by the Terraform CLI. 
+The Name of the Key needs to be Unique for every Participant. (only Lowercase and numbers allowed)
 
 ```
-    - name: Azure CLI script
-      uses: azure/CLI@v1
-      with:
-        inlineScript: |
-          az appservice plan create -g ${{ secrets.rg }} -n ${{ secrets.asp }} --is-linux --number-of-workers 1 --sku B1
-          az webapp create -g ${{ secrets.rg }} -p ${{ secrets.asp }} -n ${{ secrets.webapp }}  --runtime "node|10.14"
+terraform {
+  backend "azurerm" {
+    resource_group_name  = "ws-devops"
+    storage_account_name = "cgmsgtf"
+    container_name       = "tfstateazdevops"
+    key                  = "######.tfstate"
+  }
+}
 ```
 
-AppService with Azure CLI
-<br> https://docs.microsoft.com/de-de/cli/azure/appservice/plan?view=azure-cli-latest
+### Storage Account
 
-WebApp with Azure CLI
-<br> https://docs.microsoft.com/de-de/cli/azure/webapp?view=azure-cli-latest#az_webapp_create
+To learn more about Azure Storage Accounts checkout:
+
+https://docs.microsoft.com/de-de/azure/storage/common/storage-account-overview
+### Backends
+
+To learn more about Terraform Backends checkout:
+https://www.terraform.io/docs/language/settings/backends/index.html
+
+### State
+
+To learn more about the Terraform State Checkout:
+https://www.terraform.io/docs/language/state/index.html
+
+## Data and Resource
+
+There are two types of definitions we use to define Resources in Azure.
+
+### Data
+
+Used to get available Resources on Azure and read out there current Configuration for later Use. Data is never Altered by Terraform as it is an External Resource.
+
+### Resource
+
+A Resource is a Managed object by Terraform if terraform finds a difference in the Terraform State or the Actual Status of the Resource in Azure it will create a Plan on how to alter the State so it matches the Definitions in your Terraform Code again. 
+
+There are Mandetory and Optional Settings for each resource Type.
+
+## Resource Group
+
+We define the following resource Group as Data for later use. As this is a shared Resource for all Participants we cant use a Resource definition.
+
+```
+#Get resource group
+data "azurerm_resource_group" "wsdevops" {
+  name = "ws-devops"
+}
+
+```
+
+More about Azure Resource Groups:
+https://docs.microsoft.com/de-de/azure/azure-resource-manager/management/manage-resource-groups-portal
+
+More About Terraform Resource Group Definitions:
+
+https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/resource_group
+
+## App Service Plan
+
+In the Next Step you define your desired Azure App Service Plan
+
+For Location and Resource Group Name we use the previus gathered information from the Resource Group Data Definition.
+
+For our example we want a Linux App Service Plan with the SKU STANDARD S1
+
+```
+resource "azurerm_app_service_plan" "sp1" {
+  name                = "####"
+  location            = data.azurerm_resource_group.wsdevops.location
+  resource_group_name = data.azurerm_resource_group.wsdevops.name
+  kind                = "Linux"
+  reserved            = true
+
+  sku {
+    tier = "Standard"
+    size = "S1"
+  }
+}
+
+```
+
+More about Azure App Service Plan:
+
+https://docs.microsoft.com/de-de/azure/app-service/overview-hosting-plans
 
 
-You will see there is a tiny difference in your File to this Code Snipped.
-Just Copy over the Missing Part.
+More about Terraform App Service Plan Definition:
+
+
+https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/app_service_plan
+
+## App Service
+
+For the App Service Definition we need a Site Configuration of "NODE|10-lts"
+
+The Website Content will be added later over a Secondary Pipeline.
+
+```
+resource "azurerm_app_service" "website" {
+  name                = "asflolie4123"
+  location            = data.azurerm_resource_group.wsdevops.location
+  resource_group_name = data.azurerm_resource_group.wsdevops.name
+  app_service_plan_id = azurerm_app_service_plan.sp1.id
+
+  site_config {
+    linux_fx_version = "NODE|10-lts"
+    scm_type         = "LocalGit"
+  }
+}
+```
+
+More about App Services:
+https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/app_service
 
 # 2. Run your Pipeline
 
 After you Set up your Secrets and fixed the Code in your Repository.
 You can try to run your Workflow.
-To do so go to Actions and select the Infra workflow on the Left site.
+To do so go to Actions and select the Terraform workflow on the Left site.
 
 Now Select Run workflow on the Right side.
 
