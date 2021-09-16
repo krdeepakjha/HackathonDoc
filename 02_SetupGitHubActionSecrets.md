@@ -42,36 +42,48 @@ For this Hackathon we will provide you with it:
 
 Secret:
 AZURE_CREDENTIALS =
-`{
+```
+{
   "clientId": "#",
   "clientSecret": "#",
   "subscriptionId": "#",
   "tenantId": "#"
-}`
+}
+```
 
-### RG - ResourceGroup
+### AZURE_AD_CLIENT_ID
 
-This is the Name of the Resource Group you will be using to Deploy your Website. During the Hackathon you will only have Access to the Following ResourceGroup:
+This is the Connection Data needed for the Azure Subscription.
 
-Secret:
-rg = 
-`ws-devops`
-
-If you want to know more about Resource Groups take a look here:
-https://docs.microsoft.com/en-us/azure/azure-resource-manager/management/manage-resource-groups-portal#what-is-a-resource-group
-
-
-### ASP - AppServicePlan
-
-This is the Name of the App Service Plan which needs to be unique in our Subscription.
+For this Hackathon we will provide you with it:
 
 Secret:
-asp=
-`plan-[your suffix]`
+AZURE_AD_CLIENT_ID = `#`
+### AZURE_AD_CLIENT_SECRET
 
-If you want to know more about App Service Plans take a look here:
-https://docs.microsoft.com/en-us/azure/app-service/overview
+This is the Connection Data needed for the Azure Subscription.
 
+For this Hackathon we will provide you with it:
+
+Secret:
+AZURE_AD_CLIENT_ID = `#`
+### AZURE_AD_TENANT_ID
+
+This is the Connection Data needed for the Azure Subscription.
+
+For this Hackathon we will provide you with it:
+
+Secret:
+AZURE_AD_TENANT_ID = `#`
+
+### AZURE_SUBSCRIPTION_ID
+
+This is the Connection Data needed for the Azure Subscription.
+
+For this Hackathon we will provide you with it:
+
+Secret:
+AZURE_SUBSCRIPTION_ID = `#`
 ### WEBAPP - WebApplication
 
 This is the Name of the Web Application which needs to be unique globally.
