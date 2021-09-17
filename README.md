@@ -17,5 +17,5 @@ Tasks to do:
 5. Create WebApp Pipeline [here](/04_SetupWebsite.md)
 6. **Optional Extra Task:** Create Monitoring [here](/05_Monitoring.md)
 
-:white_check_mark: We also created a working solution located in the branch [Solution](https://github.com/DevOps-Gilde/webapp/tree/solution) of your forked repository that covers all tasks except monitoring. 
+:white_check_mark: We also created a working solution located in the branch [Solution](https://github.com/DevOps-Gilde/webapp-tf/tree/solution) of your forked repository that covers all tasks except monitoring. 
 If at any Point you need assistance nevertheless do not hesitate to ask. We are here to Help you.

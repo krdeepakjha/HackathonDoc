@@ -7,14 +7,20 @@ You should now have Completed the Following things:
 2. Setup the Example Code in your Account
 3. Added the Repository Secrets to the Example Code
 
-Next you will get an Overview over the Example Code to Setup your first own Website on Azure via Terraform. This will only be the most basic Infrastructure Setup. In a later Step we will then alter the Websites Content.
-
-If you want to learn more about the concept of a pipeline you can do it here:
+Next you will get an Overview over the Example Code to Setup your first own Website on Azure via Terraform. This will only be the most basic Infrastructure Setup. If you want to learn more about the concept of a pipeline you can do it here:
 
 [https://docs.github.com/en/actions/quickstart](https://docs.github.com/en/actions/quickstart)
 
+Creating infrastructure with terraform in github actions consists of two major steps:
+1. Workflow (=Yaml file)
+ 
+    The focus of this hackathon is on terraform. Therefore, we have already programmed all required steps. But we also want to make sure you have a chance to understand the code. The next chapter therefore explains in detail what the steps in the code do.
 
-# 1. Setting up the Infrastructure Pipeline
+2. Terraform (=Files with extension tf)
+
+    This part **contains all tasks to implement**.
+
+# 1. Primer Workflow
 
 The first Step in Creating a Pipeline with GitHub Actions would normally be to Select a Template and Start from there.
 
@@ -119,11 +125,19 @@ Next the Script manages Terraform with the Build in Terraform CLI "`uses: hashic
     - name: Terraform fmt
       id: fmt
       run: terraform fmt -check
-      continue-on-error: false
+      # Due to unresolveable problems with variable.tf files.
+      # If you can figure out what is wrong let us know
+      continue-on-error: true
 
     - name: Terraform Plan
       id: plan
       run: terraform plan -no-color
+      env:
+        TF_VAR_client_id: ${{ secrets.AZURE_AD_CLIENT_ID }}
+        TF_VAR_client_secret: ${{ secrets.AZURE_AD_CLIENT_SECRET }}
+        TF_VAR_subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+        TF_VAR_tenant_id: ${{ secrets.AZURE_AD_TENANT_ID }}
+
 ```
 
 ## Checkout
@@ -131,7 +145,7 @@ Next the Script manages Terraform with the Build in Terraform CLI "`uses: hashic
 Checkout gets the Branch from Github onto the Worker.
 As the Worker is created everytime from Scratch every Job needs to get the Sources again.
 
-## terraform cli
+## Terraform cli
 
 `   - uses: hashicorp/setup-terraform@v1`
 Defines the Buildin Commands to be available on the worker from GitHub.
@@ -139,17 +153,29 @@ Defines the Buildin Commands to be available on the worker from GitHub.
 The CLI documentation can be found here.
 https://learn.hashicorp.com/tutorials/terraform/azure-build?in=terraform/azure-get-started
 
-## terraform init
+## Terraform init
 
 Terraform Init sets up the Current Project Environment and connects to the Azure Storage Account Defined in your "`terraform/main.tf`"
 
 ## Terraform fmt
-Terraform fmt allows you to Format your Code automatically so it matches the expected Syntax. It Beautyfies your code aswell for better readablity. 
+Terraform fmt allows you to Format your Code automatically so it matches the expected Syntax. It beautyfies your code aswell for better readablity. 
 
-We set "`continue-on-error: false`" so you get Automatic Linting and the Pipeline doesnt allow properly Formatted code.
+Normally you would set "`continue-on-error: false`" so you get Automatic Linting and the Pipeline doesnt allow incorrect formatted code. Unfortuately we could not figure out why terraform is complaining about the certain things you introduce later on such as variables. Therefore set "`continue-on-error: true`" to ensure your code is running through. If you figure out what is the correct required formatting let us know, so that we can drop this workaround.
 
 ## Terraform Plan
 Creates a Plan of the Changes needed to be done on Azure to accomplish the defined Settings in your Terraform Code.
+
+The `env:` subsection is responsible for initializing variables that are defined in our terraform module `main.tf`.
+```
+    - name: Terraform Plan
+      ...
+      env:
+        TF_VAR_client_id: ${{ secrets.AZURE_AD_CLIENT_ID }}
+        TF_VAR_client_secret: ${{ secrets.AZURE_AD_CLIENT_SECRET }}
+        TF_VAR_subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+        TF_VAR_tenant_id: ${{ secrets.AZURE_AD_TENANT_ID }}
+```
+The variable name follows the following special convention: `TF_VAR_<name of your var in terraform>`. Terraform then automatically maps the value to the terraform variable.
 
 ## Dependencies and Environments
 
@@ -159,18 +185,23 @@ You can Setup Concurrent or sequential Tasks with Pipelines. In our example we m
 
 Also we Setup two different Environments "production" and "developement" those are necessary for an Approval Workflow. More on that later.
 
-
 ## Terraform apply
 
 The Final Step is to Apply the Terraform Code which will Setup the Defined Environment on Azure.
 
+As in the plan command you have to add variables in the `env:` subsection.
+
 ## Terraform main.tf
 
-Your /terrform/main.tf contains all the Setting for the Desired Infrastructure on Azure.
+Your /terrform/main.tf contains all the Setting for the Desired Infrastructure on Azure. It will be the major file where you have to implement things.
 
-Every Terraform Project needs a Backend to Store the State by default a Local file will be used but there are many Different Available Backends. In our Case we Provide you with an Azure Storageaccount.
-Which is Defined by first Stating the Resource Group and Storage Account Name. Inside a Storage Account we also Specify an Existing Container Name. The here Selected Key is the State File Terraform will use. If it doesnt exist it will be created by the Terraform CLI. 
-The Name of the Key needs to be Unique for every Participant. (only Lowercase and numbers allowed)
+# 2. Terraform Tasks
+
+## Terraform settings
+
+Every Terraform Project needs a Backend to store the state by default a Local file will be used but there are many different available backends. In our case we have already provided you with an azure storage account and a container in which the state file resides.
+However, it is your job to provide a unique name for the state file in `main.tf`. If it doesnt exist it will be created by the Terraform CLI. 
+The name of the placeholder `<your unique name>` needs to be unique for every participant. (only Lowercase and numbers allowed)
 
 ```
 terraform {
@@ -178,7 +209,7 @@ terraform {
     resource_group_name  = "ws-devops"
     storage_account_name = "cgmsgtf"
     container_name       = "tfstateazdevops"
-    key                  = "######.tfstate"
+    key                  = "<your unique name>.tfstate"
   }
 }
 ```
@@ -198,24 +229,38 @@ https://www.terraform.io/docs/language/settings/backends/index.html
 To learn more about the Terraform State Checkout:
 https://www.terraform.io/docs/language/state/index.html
 
+## Input variables
+
+In the github actions workflows we passed input parameters to terraform. Currently the counterpart in terraform is missing. It is good practise to declare the input variables for a module (here main.tf) in a separate file. Therefore, add an additional file in the same folder as `main.tf` named `variables.tf`. Add the following code:
+
+```
+variable "client_id" {
+  description = "Application id from app registration in azure active directory." 
+  type        = string
+}
+
+variable "client_secret" {
+  description = "Client secret from app registration in azure active directory." 
+  type        = string
+}
+
+variable "subscription_id" {
+  description = "Subscription id of resource group." 
+  type        = string
+}
+
+variable "tenant_id" {
+  description = "Tenant id of subscription." 
+  type        = string
+}
+```
+The variables are needed for the optional monitoring task.
+
 ## Data and Resource
 
-There are two types of definitions we use to define Resources in Azure.
+As you probably most of the deployed Azure resources reside in a resource group. We created that resource group already to reduce administrative efforts. The other Azure resources inside the resource group have to be first created. This distinction between existing resources and to be created ones is also reflected in the terraform code. The keyword `data` denotes a reference to existing resources you want to read. Resources to be managed by terraform are called `resource`. As explained in the introduction terraform adjusts these resources so that they match the target state you define in the terraform code. Both data and resources can have mandatory and optional properties.
 
-### Data
-
-Used to get available Resources on Azure and read out there current Configuration for later Use. Data is never Altered by Terraform as it is an External Resource.
-
-### Resource
-
-A Resource is a Managed object by Terraform if terraform finds a difference in the Terraform State or the Actual Status of the Resource in Azure it will create a Plan on how to alter the State so it matches the Definitions in your Terraform Code again. 
-
-There are Mandetory and Optional Settings for each resource Type.
-
-## Resource Group
-
-We define the following resource Group as Data for later use. As this is a shared Resource for all Participants we cant use a Resource definition.
-
+So let's add the required code for reading the resource group and its property for later reference. To do so add the following code to `main.tf` file.
 ```
 #Get resource group
 data "azurerm_resource_group" "wsdevops" {
@@ -223,6 +268,7 @@ data "azurerm_resource_group" "wsdevops" {
 }
 
 ```
+`name` is a mandatory property in this case. It is needed by terraform to know hich existing resource group you are refering to.
 
 More about Azure Resource Groups:
 https://docs.microsoft.com/de-de/azure/azure-resource-manager/management/manage-resource-groups-portal
@@ -269,7 +315,7 @@ https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/
 
 For the App Service Definition we need a Site Configuration of "NODE|10-lts"
 
-The Website Content will be added later over a Secondary Pipeline.
+The Website Content will be added later over a second Pipeline.
 
 ```
 resource "azurerm_app_service" "website" {
@@ -288,7 +334,7 @@ resource "azurerm_app_service" "website" {
 More about App Services:
 https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/app_service
 
-# 2. Run your Pipeline
+# 3. Run your Pipeline
 
 After you Set up your Secrets and fixed the Code in your Repository.
 You can try to run your Workflow.
@@ -309,4 +355,17 @@ https://`[yourWebAppName]`.azurewebsites.net/
 You should see a &quot;Hey, Node developers&quot; welcome screen.
 
 Congratulations, you have deployed your first WebApp infrastructure.
- Now, you can go ahead and deploy some code to your WebApp.
+
+## Manual Approval
+
+We have not yet answered the question regarding manual approval. In the apply statement you might have noticed the environment property as shown below:
+```
+...
+terraformapply:
+  ...
+  environment: production
+```
+In the GitHub portal you can now register additional persons that act as additional approver for the named environment. The screenshot below shows the relevant section under settings:
+<br><img src="./images/manual_approval.PNG" width="800"/><br>
+
+That was all what we wanted demonstrate. Thanks for staying with us up to now.
