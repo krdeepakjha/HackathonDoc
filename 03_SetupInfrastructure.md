@@ -253,6 +253,12 @@ variable "tenant_id" {
   description = "Tenant id of subscription." 
   type        = string
 }
+
+variable "web_app_name" {
+  description = "The name of the web app." 
+  type        = string
+}
+
 ```
 The variables are needed for the optional monitoring task.
 
@@ -287,7 +293,7 @@ For our example we want a Linux App Service Plan with the SKU STANDARD S1
 
 ```
 resource "azurerm_app_service_plan" "sp1" {
-  name                = "####"
+  name                = "<your unique service plan name>"
   location            = data.azurerm_resource_group.wsdevops.location
   resource_group_name = data.azurerm_resource_group.wsdevops.name
   kind                = "Linux"
@@ -313,13 +319,13 @@ https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/
 
 ## App Service
 
-For the App Service Definition we need a Site Configuration of "NODE|10-lts"
+For the App Service Definition we need a Site Configuration of "NODE|10-lts". As name we use the value of the secret that was passed as input variable. Variable references in terraform have the format `var.<name of your variable>`.
 
 The Website Content will be added later over a second Pipeline.
 
 ```
 resource "azurerm_app_service" "website" {
-  name                = "asflolie4123"
+  name                = var.web_app_name
   location            = data.azurerm_resource_group.wsdevops.location
   resource_group_name = data.azurerm_resource_group.wsdevops.name
   app_service_plan_id = azurerm_app_service_plan.sp1.id
@@ -336,18 +342,18 @@ https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/
 
 # 3. Run your Pipeline
 
-After you Set up your Secrets and fixed the Code in your Repository.
-You can try to run your Workflow.
-To do so go to Actions and select the Terraform workflow on the Left site.
+After you set up your secrets and fixed the code in your repository.
+You can try to run your workflow.
+To do so go to Actions and select the terraform workflow on the Left site.
 
-Now Select Run workflow on the Right side.
+Now select run workflow on the right side.
 
 <br><img src="./images/runWorkflow.PNG" width="800"/><br>
 
 ## Workflow Progress
 
 Wait for your Workflow to finish.
-If the Task does not run through you may ask one of us to Help you out.
+If the task does not run through you may ask one of us to help you out.
 ## Check your WebApp is online after approx. 5 minutes
 
 https://`[yourWebAppName]`.azurewebsites.net/
