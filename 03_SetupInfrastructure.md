@@ -2,12 +2,12 @@
 
 ## Introduction
 
-You should now have Completed the Following things:
+You should now have completed the following things:
 1. Setup your GitHub Account
-2. Setup the Example Code in your Account
-3. Added the Repository Secrets to the Example Code
+2. Setup the example code in your account
+3. Added the repository secrets to the example code
 
-Next you will get an Overview over the Example Code to Setup your first own Website on Azure via Terraform. This will only be the most basic Infrastructure Setup. If you want to learn more about the concept of a pipeline you can do it here:
+Next you will get an overview over the example code to setup your first own Website on Azure via Terraform. This will only be the most basic infrastructure setup. If you want to learn more about the concept of a pipeline you can do it here:
 
 [https://docs.github.com/en/actions/quickstart](https://docs.github.com/en/actions/quickstart)
 
@@ -22,13 +22,13 @@ Creating infrastructure with terraform in github actions consists of two major s
 
 # 1. Primer Workflow
 
-The first Step in Creating a Pipeline with GitHub Actions would normally be to Select a Template and Start from there.
+The first Step in Creating a Pipeline with GitHub Actions would normally be to select a Template and start from there.
 
-To do so you would go to Actions in your Code Repository and select an appropriate Template or start from Scratch with an empty one.
+To do so you would go to Actions in your code repository and select an appropriate template or start from Scratch with an empty one.
 
-In our Example we already Created the necessary Files. So to say our own Template.
+In our example we already created the necessary files. So to say our own template.
 
-Your first Task is to go into your Repository and look at the Following file.
+Your first task is to go into your repository and look at the following file.
 
 >_Warning: The formatting of YAML (yml) files is based on spaces and tabs and therefore the following lines should be copied with care.
 > It is advised to use Visual Studio Code to validate the copied file._
@@ -64,7 +64,7 @@ jobs:
 
 ## Azure Cli
 
-The Pipeline we are Proposing here is using Terraform to create the Service Plan on Azure.
+The pipeline we are proposing here is using Terraform to create the Service Plan on Azure.
 
 Github Terraform Doc: 
 <br> https://github.com/hashicorp/setup-terraform
@@ -74,22 +74,22 @@ Azure AppServicePlan and WebApp:
 
 ## Pipeline Name
 
-Next we Specify the Name of our GitHub Action in our Example "`name: infra`".
+Next we specify the Name of our GitHub Action in our Example "`name: infra`".
 
 ## Triggers
 
-The Code Starts by using "`on: workflow_dispatch`" which means one of the Triggers to Start this Pipeline is to do it Manually.
+The code starts by using "`on: workflow_dispatch`" which means one of the triggers to start this pipeline is to do it Manually.
 
-There are many Automatic triggers you can use, to learn more about Triggers check this:
+There are many automatic triggers you can use, to learn more about triggers check this:
 https://docs.github.com/en/actions/reference/events-that-trigger-workflows#workflow_dispatch
 
 ## Environment Variables:
 
-The Environment Variables are set in the Code Runners the Pipeline uses. In our Example these are known Variables by Terraform which it uses to Authenticate against Azure.
+The environment variables are set in the code runners the pipeline uses. In our example these are known variables by terraform which it uses to authenticate against Azure.
 ## Code runner
 
-After we define the Triggers and the Name of the workflow we need to Specify its "`jobs`".
-In our Example we split the Pipeline into two Jobs "`terraform`" and "`terraformapply`".
+After we define the triggers and the name of the workflow we need to specify its "`jobs`".
+In our example we split the Pipeline into two Jobs "`terraform`" and "`terraformapply`".
 
 This is done to allow for manual Approval. More on that later.
 
@@ -106,14 +106,14 @@ jobs:
 
 ## Defaults
 
-In Our Case the terraform Code is Located in a Subdirectory why we need to define the "`working-directory`" for all upcoming Terraform Tasks. 
+In our case the terraform code is located in a subdirectory why we need to define the "`working-directory`" for all upcoming Terraform Tasks. 
 
-To learn more about the Workflow Syntax and Jobs visit:
+To learn more about the workflow syntax and jobs visit:
 https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions#jobs
 
 ## Deployment of AppService and WebApp
 
-Next the Script manages Terraform with the Build in Terraform CLI "`uses: hashicorp/setup-terraform@v1`".
+Next the script manages Terraform with the build in Terraform CLI "`uses: hashicorp/setup-terraform@v1`".
 ```
     - name: Checkout
       uses: actions/checkout@v2
@@ -142,28 +142,28 @@ Next the Script manages Terraform with the Build in Terraform CLI "`uses: hashic
 
 ## Checkout
 
-Checkout gets the Branch from Github onto the Worker.
-As the Worker is created everytime from Scratch every Job needs to get the Sources again.
+Checkout gets the branch from Github onto the worker.
+As the worker is created everytime from scratch every job needs to get the sources again.
 
 ## Terraform cli
 
 `   - uses: hashicorp/setup-terraform@v1`
-Defines the Buildin Commands to be available on the worker from GitHub.
+Defines the Builtin commands to be available on the worker from GitHub.
 
 The CLI documentation can be found here.
 https://learn.hashicorp.com/tutorials/terraform/azure-build?in=terraform/azure-get-started
 
 ## Terraform init
 
-Terraform Init sets up the Current Project Environment and connects to the Azure Storage Account Defined in your "`terraform/main.tf`"
+Terraform init sets up the current project environment and connects to the Azure Storage Account Defined in your "`terraform/main.tf`"
 
 ## Terraform fmt
-Terraform fmt allows you to Format your Code automatically so it matches the expected Syntax. It beautyfies your code aswell for better readablity. 
+Terraform fmt allows you to format your Code automatically so it matches the expected Syntax. It beautyfies your code aswell for better readablity. 
 
-Normally you would set "`continue-on-error: false`" so you get Automatic Linting and the Pipeline doesnt allow incorrect formatted code. Unfortuately we could not figure out why terraform is complaining about the certain things you introduce later on such as variables. Therefore set "`continue-on-error: true`" to ensure your code is running through. If you figure out what is the correct required formatting let us know, so that we can drop this workaround.
+Normally you would set "`continue-on-error: false`" so you get automatic linting and the pipeline doesnt allow incorrect formatted code. Unfortuately we could not figure out why terraform is complaining about the certain things you introduce later on such as variables. Therefore set "`continue-on-error: true`" to ensure your code is running through. If you figure out what is the correct required formatting let us know, so that we can drop this workaround.
 
 ## Terraform Plan
-Creates a Plan of the Changes needed to be done on Azure to accomplish the defined Settings in your Terraform Code.
+Creates a plan of the changes needed to be done on Azure to accomplish the defined settings in your terraform code.
 
 The `env:` subsection is responsible for initializing variables that are defined in our terraform module `main.tf`.
 ```
@@ -174,32 +174,33 @@ The `env:` subsection is responsible for initializing variables that are defined
         TF_VAR_client_secret: ${{ secrets.AZURE_AD_CLIENT_SECRET }}
         TF_VAR_subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
         TF_VAR_tenant_id: ${{ secrets.AZURE_AD_TENANT_ID }}
+        TF_VAR_web_app_name: ${{ secrets.WEBAPP }}
 ```
 The variable name follows the following special convention: `TF_VAR_<name of your var in terraform>`. Terraform then automatically maps the value to the terraform variable.
 
 ## Dependencies and Environments
 
-You can Setup Concurrent or sequential Tasks with Pipelines. In our example we made a Sequential Task by definining defining that the Seconds Task needs the First:
+You can setup concurrent or sequential tasks with Pipelines. In our example we made a sequential task by definining that the second task needs the first:
 
 "`needs: [terraform]`"
 
-Also we Setup two different Environments "production" and "developement" those are necessary for an Approval Workflow. More on that later.
+Also we setup two different Environments "production" and "developement" those are necessary for an Approval Workflow. More on that later.
 
 ## Terraform apply
 
-The Final Step is to Apply the Terraform Code which will Setup the Defined Environment on Azure.
+The final Step is to apply the terraform code which will setup the defined environment on Azure.
 
 As in the plan command you have to add variables in the `env:` subsection.
 
 ## Terraform main.tf
 
-Your /terrform/main.tf contains all the Setting for the Desired Infrastructure on Azure. It will be the major file where you have to implement things.
+Your /terrform/main.tf contains all the setting for the desired infrastructure on Azure. It will be the major file where you have to implement things.
 
 # 2. Terraform Tasks
 
 ## Terraform settings
 
-Every Terraform Project needs a Backend to store the state by default a Local file will be used but there are many different available backends. In our case we have already provided you with an azure storage account and a container in which the state file resides.
+Every terraform project needs a backend to store the state by default a Local file will be used but there are many different available backends. In our case we have already provided you with an azure storage account and a container in which the state file resides.
 However, it is your job to provide a unique name for the state file in `main.tf`. If it doesnt exist it will be created by the Terraform CLI. 
 The name of the placeholder `<your unique name>` needs to be unique for every participant. (only Lowercase and numbers allowed)
 
