@@ -258,7 +258,7 @@ The variables are needed for the optional monitoring task.
 
 ## Data and Resource
 
-As you probably most of the deployed Azure resources reside in a resource group. We created that resource group already to reduce administrative efforts. The other Azure resources inside the resource group have to be first created. This distinction between existing resources and to be created ones is also reflected in the terraform code. The keyword `data` denotes a reference to existing resources you want to read. Resources to be managed by terraform are called `resource`. As explained in the introduction terraform adjusts these resources so that they match the target state you define in the terraform code. Both data and resources can have mandatory and optional properties.
+As you probably know most of the deployed Azure resources reside in a resource group. We created that resource group already for you to reduce administrative efforts. The other Azure resources inside the resource group have to be created by your code. This distinction between existing resources and to be created ones is also reflected in the terraform code. The keyword `data` denotes an existing resources you want to read for later reference in your code. Resources to be managed by terraform are denoted by the keyword `resource`. As explained in the introduction terraform adjusts these resources so that they match the target state you define in the terraform code. Both data and resources can have mandatory and optional properties.
 
 So let's add the required code for reading the resource group and its property for later reference. To do so add the following code to `main.tf` file.
 ```
@@ -268,7 +268,7 @@ data "azurerm_resource_group" "wsdevops" {
 }
 
 ```
-`name` is a mandatory property in this case. It is needed by terraform to know hich existing resource group you are refering to.
+`name` is a mandatory property in this case. It is needed by terraform to know which resource group you are refering to.
 
 More about Azure Resource Groups:
 https://docs.microsoft.com/de-de/azure/azure-resource-manager/management/manage-resource-groups-portal
