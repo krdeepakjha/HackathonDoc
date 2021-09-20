@@ -3,80 +3,97 @@
 ## General
 
 This is an optional extra task you can work on. Focus of the task is monitoring your demo web app. App Service is deeply integrated with App Insights. App Insights is a feature within Azure Monitor. To monitor your Web App you have to create a new App Insights resource that is linked to use the **[Kusto query language](https://docs.microsoft.com/de-de/azure/data-explorer/kusto/concepts/)** to retrieve the **telemetry** data. The picture below illustrates this:
-<br><img src="./images/MonitoringOverview.png" width="400"/>
+<br><img src="./images/mon_overview.png" width="400"/>
 
 To watch your **telemetry** in App Insight we will use the portal. We created special users for portal access. Contact one of us to get the credentials for it. The next two big steps are:
 1. Extend your infra pipeline to create an App Insights resource and link it to your Web App
-2. Grab a user and monitor your Web App via the Azure portal
+2. Monitor your Web App via App Insights resource
+3. Monitor your Web App via a dashboard
 
-The next chapters will detail these two major steps.
+The next chapters will detail these steps.
 
 ## Extend your infra pipeline
 
-To create the additional components we will extend the "Azure CLI script" step in our existing infra pipeline. The comment in the file below marks the place where code needs to be added.
+To create the additional components we will add additional code to the already existing terraform module `main.tf`.
 
-`#File: .github/workflows/azure_infra.yml`
+Application insights started as a separate stand alone resource. In the meantime Microsoft recommends a setup together with a log analytics workspace. In this scenario application insights references a log analytics workspace. Therefore, as a first step we must create the log analytics workspace before we can continue. To achieve that add the following declaration to the task outlined previously. Replace `<your prefix>` with your unique prefix since all participants are working in the same resource group:
 ```
-on: 
-  workflow_dispatch:
-
-name: infra
-
-jobs:
-
-  deploy:
-    runs-on: ubuntu-latest
-    steps:
-    ...
-    - name: Azure CLI script
-    uses: azure/CLI@v1
-    with:
-        inlineScript: |
-        ...        
-        # That is the code you have to add
+resource "azurerm_log_analytics_workspace" "log" {
+  name                = "<your prefix>-lg-analytics"
+  location            = data.azurerm_resource_group.wsdevops.location
+  resource_group_name = 
+data.azurerm_resource_group.wsdevops.name
+  sku                 = "PerGB2018"
+  retention_in_days   = 30
+}
 ```
 
-To run Azure CLI commands we first have to create first the application insights extension.
+Now we can finally setup the application insight resource. The link between both is established by setting the property `workspace_id`. Replace `<your prefix>` with a unique prefix since all participants are working in the same resource group:
 ```
-az extension add -n application-insights
-```
-
-With the extension in place we can now create the application insights resource. In contrast to the command for the Web App we have to specify the location. We will use the same location as the location of the resource group. To achieve we will store the location in a shell variable `locName`. The assigned value will be the result of an azure cli command. Therefore, the command needs to embedded in backticks.
-```
-locName=`az group show --name ${{ secrets.rg }} --query location --output tsv`
-```
-An interesting part is the `--query` argument. It is required because  `az group  show` returns the complete JSON representation of the resource group. But we need only the value of the property location. `--query` argument allows you to apply a JMESPath filter expression to the returned JSON. In our case the filter expression is just the name of the property. The `--output tsv` specifies the output format which does not contain any formatting. Both options together yield the location we are looking for.
-
-As with the Web App the name of the App Insights resource needs to be unique since you are all working in the same resource group. Therefore we will use the same name just with an additional prefix.
-```
-az monitor app-insights component create --app apimon${{ secrets.webapp }} --location $locName --kind web -g ${{ secrets.rg }} --application-type web --retention-time 30
+resource "azurerm_application_insights" "appi" {
+  name                = "<your prefix>-api"
+  location            = data.azurerm_resource_group.wsdevops.location
+  resource_group_name = 
+data.azurerm_resource_group.wsdevops.name
+  workspace_id        = azurerm_log_analytics_workspace.log.id
+  application_type    = "web"
+}
 ```
 
-Establishing a link requires a reference in the Web App that represents our App Insights resource. App insights provides a so called *instrumentation key* that can be used as reference. The following command stores this key in a variable instrumentationKey. 
+Now we will link your application insights resource with your web app. In our last session we used Azure CLI for that. We will stick to it, although we could also achieve that in terraform. This means we will have to embed scripting code in terraform modules. Why is that pattern important? It takes some time until new features are implemented in terraform. Therefore, falling back to scripting is something that can hit you easily. The first challenge is to provide a special null resource where our scripting code lives in. Below you find a first skeleton:
 ```
-instrumentationKey=`az monitor app-insights component show --app apimon${{ secrets.webapp }} --resource-group ${{ secrets.rg }} --query  "instrumentationKey" --output tsv`
+// Skeleton for linking web app and app insights
+resource "null_resource" "link_monitoring" {
+  provisioner "local-exec" {
+    command = <<EOT
+      # Login to Azure CLI (Linux operating system assumed)
+      az login --service-principal -u $con_client_id -p $con_client_secret --tenant $con_tenant_id
+      # TODO your scripting code
+    EOT
+    environment = {
+      // Parameters needed to login
+      con_client_id     = TODO
+      con_client_secret = TODO
+      con_tenant_id     = TODO
+      // Parameters needed for linking
+      inst_key          = TODO
+      rg_name           = TODO
+      web_app_name      = TODO
+    }
+  }
+}
 ```
-The command follows thesame pattern as above where we stored the location of the resource group in a variable. The only difference here is the different attribut we are interested in.
+First a few comments regarding the blocks:
+1. command
 
-Now let's use our variable to link the Web App to App Insights. This requires updating a few **application** settings inside the Web App. One is of course our **instrumentation key**. The command below shows how that is done. 
-```
-az webapp config appsettings set --name $webapp --resource-group ${{ secrets.rg }} --settings APPINSIGHTS_INSTRUMENTATIONKEY=$instrumentationKey APPLICATIONINSIGHTS_CONNECTION_STRING=InstrumentationKey=$instrumentationKey ApplicationInsightsAgent_EXTENSION_VERSION=~2
-```
+   Holds your script code marked by the keyword `EOT` inline. Note that the script code is a black box for terraform. Any dependencies beyond the input parameters have to be stated explicitly on the resource level.
+2. environment
 
-## Monitor your Web App in App Insights
+   This section is used to pass terraform values to your scripting code as environment variables. The lefthand side states the name and righthand side states the terraform expression used as value. The environment variables can be used by the scripting code according to the conventions by the used scripting language. The conventions depend on the VM operating system you are using.
+
+As you have seen there are a few `TODO`s left to fill. Let's start with the parameters. The first group results from the required `az login` command. It requires (1) the id of the current service principal, (2) the tenant id and (3) the secret of the service principal. 
+All three can be obtained from the variables we introduced earlier. To reference a variable you have to state `var.<name-of-variable>`. The instrumentation key can be obtained from the created application insight resource with `azurerm_application_insights.appi.instrumentation_key`. The resource group follows the same pattern as applied earlier.
+The last missing piece is our scripting code. Place the following code below the az login command:
+```
+az webapp config appsettings set --name $web_app_name --resource-group $rg_name --settings APPINSIGHTS_INSTRUMENTATIONKEY=$inst_key APPLICATIONINSIGHTS_CONNECTION_STRING=$inst_key
+ApplicationInsightsAgent_EXTENSION_VERSION=~2
+```
+This command adds application settings to our web application. They constitute the link so that telemetry is forwarded.
+
+## Monitor via App Insights resource
 
 First contact one of us to grab a user along with the credentials.
 
 To login to the Azure Portal enter "portal.azure.com" in the browser. Use the credentials given to you to login.
 
 Navigate in the portal to the resource group "ws-devops".
-<br><img src="./images/MonitorApInsightsRG.png" width="400"/>
+<br><img src="./images/mon_appi_rg.png" width="400"/>
 
 Open your App Insights instance and by clicking on the entry representing your instance. Click in the main menu on the left hand side on "Logs". Click away the welcome and query screen.
-<br><img src="./images/MonitorApInsightsLogs.png" width="400"/>
+<br><img src="./images/mon_appi_logs.png" width="400"/>
 
 You will see detail screen where you can enter your Kusto query. The screenshot below explains a bit the major controls.
-<br><img src="./images/MonitorApInsightsKusto.png" width="400"/>
+<br><img src="./images/mon_appi_kusto.png" width="400"/>
 
 The simplest Kusto query is just to state the name of the log table you are interested in as shown below. If you execute this query by pressing the previously outlined button you get the result. Note that there is a small delay until the data is visible in App Insights (app. 1 minute).
 ```
@@ -86,10 +103,59 @@ requests
 Let's run now a bit more sophisticated query that counts all failed requests (In our case all requests where the HTTP status code does not equal 200). We will extend our query by two keywords:
 1. where - as in SQL this allows us to filter the records by a certain criteria
 2. summarize - Allows you to run an aggregating operation such as count
+
 The snippet below shows the full query. As you can see both keywords are chained by the pipe operator:
 ```
 requests
 | where resultCode != 200
 | summarize count()
 ```
-The result of the query should output the number of failed requests now. With these two queries we just touched the basics of monitoring in App Insights. Kusto provides much more capabilities and you can also use it to trigger automatic actions based on the query result.
+The result of the query should output the simplified number of failed requests now. With these two queries we just touched the basics of monitoring in App Insights. Kusto provides much more capabilities and you can also use it to trigger automatic actions based on the query result.
+
+## Monitor via dashboard
+
+In reality you have to monitor a lot of places. A dashboard gives you a chance to collect all relevant information in a single place. We will now integrate our query now in a first example dashboard.
+From terraform perspective a dashboard is just another resource. The complete layout along with its content is stored as JSON in one of the resource properties. The JSON is internal. Hardcoding the content like queries and other settings would make the code hard to maintain. Therefore, we have to implement two steps:
+1. Template for the dashboard
+2. Creating dashboard resource and assign template with values
+
+**Regarding template)**
+
+We created already a file `dashboard.tpl` that contains the internal JSON. We added already placeholders to avoid hardcoded parameters. We now have to make sure that terraform sets the correct values. We will need (1) the name of the created application insights resource, (2) the name of the resource group, (3) the current subscription id and (4) our query. All values are passed in the same fashion as already before.
+The code below now shows how you can make the JSON available for later use:
+```
+data "template_file" "dash-template" {
+  template = "${file("${path.module}/dashboard.tpl")}"
+  vars = {
+    api_name = azurerm_application_insights.appi.name
+    rg_name  = data.azurerm_resource_group.wsdevops.name
+    sub_id   = var.subscription_id
+    query    = "requests | where resultCode != 200 | summarize count()"
+  }
+}
+```
+Note the following interesting points:
+1. template property
+
+   The expression constructs the file path for the template file. `${path.module}`resolves to the current path within the current tf-module. We assume that `dashboard.tpl` is located in the same directory as `main.tf`. `file`concatenates both parts and yields the final path.
+2. Vars section
+
+   The variables are defined in the var section such as `sub_id`. The standard expression syntax `${sub_id}` must be used inside the file `dashboard.tpl` to trigger the replacement with the value.
+
+**Creating dashboard resource)**
+
+Now we can reference the template file in the dashboard resource as follows. As above use a unique prefix since you are all working in the same resource group:
+```
+resource "azurerm_dashboard" "my-board" {
+  name                = "<your prefix>-dasboard"
+  resource_group_name = data.azurerm_resource_group.wsdevops.name
+  location            = data.azurerm_resource_group.wsdevops.location
+  tags = {
+    source = "terraform"
+  }
+  dashboard_properties = data.template_file.dash-template.rendered
+}
+```
+`data.template_file.dash-template` follows the usual pattern to reference existing resources (data = since existing; type = template_file; dash-template = user specified name). `Rendered` is the property name defined by terraform to retrieve the JSON with the replaced values.
+
+There are multiple ways to open the dashboard you created. One way is to open the resource group. There you should have an entry for your dashboard `<your prefix>-dasboard`. Click on the entry. In the overview page you have a link as shown below that taks you directly to your dashboard.

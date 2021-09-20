@@ -8,80 +8,11 @@ You should now have Completed the Following things:
 3. Added the Repository Secrets to the Example Code
 4. Setup the initial WebApp on Azure
 
-In this task we will Push our own Website Content to our freshly created Azure Website.
+The explanations shall help you to create the website via GitHub Actions. 
+All required code is already there since the focus of this session is terraform. No further actions are required apart from starting the workflow.
 
-If you get Stuck here you may ask us for Help. We can also provide a Complete solution.
-# 1. Setting up the Website Pipeline
+# Run your Pipeline
 
->_Warning: The formatting of YAML (yml) files is based on spaces and tabs and therefore the following lines should be copied with care.
-> It is advised to use Visual Studio Code to validate the copied file._
-> <br>[How to work with Git Locally](/01.5_SetupGit.md)
-
-`# File: .github/workflows/azure_webapp.yml`
-```
-on: 
-  workflow_dispatch:
-
-name: app
-
-jobs:
-  build-and-deploy:
-    runs-on: **
-    steps:
-    # checkout the repo
-    - name: 'Checkout Github Action' 
-      uses: actions/checkout@master
-      
-    - name: Setup Node 10.x
-      uses: actions/setup-node@v1
-      with:
-        **
-
-    - name: 'npm install, build, and test'
-      run: |
-        **
-
-    - name: Azure Login
-      uses: azure/login@v1
-      with:
-        **
-
-    - name: 'Azure webapp deploy'
-      uses: azure/webapps-deploy@v2
-      with:
-        **
-        package: ${{ github.workspace }}/app
-
-```
-
-Our Code seems to be corrupted maybe these notes of our Developer can help you fix it.
-
-```
-Where did i do this Login before?
-```
-
-```
-To build the npm dependencies i need to Change Directory into the  app folder and then run
-npm install
-npm run build --if-present
-npm run test --if-present
-```
-
-```
-Run on ubuntu-latest
-Then check out the Repository
-The `node-version` should be "10.x"
-```
-
-```
-azure/webapps-deploy@v2
-
-Needs the `app-name` and a `package` location. Where did i store the webapps Name again?
-```
-# 2. Run your Pipeline
-
-After you Set up your Secrets and fixed the Code in your Repository.
-You can try to run your Workflow.
 To do so go to Actions and select the app workflow on the Left site.
 
 Now Select Run workflow on the Right side.
@@ -98,5 +29,5 @@ https://`[yourWebAppName]`.azurewebsites.net/
 
 You should see a &quot;Hey, Node developers&quot; welcome screen.
 
-Congratulations, you have deployed your first WebApp infrastructure.
- Now, you can go ahead and deploy some code to your WebApp.
+Congratulations, you have deployed your first WebApp via GitHub Actions and terraform.
+ 
