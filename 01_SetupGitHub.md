@@ -11,7 +11,7 @@ If not create a new one under https://github.com/
 
 ## Fork Repository
 
-1. Open https://github.com/DevOps-Gilde/webapp
+1. Open https://github.com/DevOps-Gilde/webapp-tf
 2. Click on Fork on the top Right Corner 
 <br><img src="./images/forkbutton.PNG" width="400"/>
 1. When asked where to Fork the Project Select the Default location which is most likely your Account name

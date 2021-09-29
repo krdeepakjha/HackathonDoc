@@ -21,8 +21,7 @@ Application insights started as a separate stand alone resource. In the meantime
 resource "azurerm_log_analytics_workspace" "log" {
   name                = "<your prefix>-lg-analytics"
   location            = data.azurerm_resource_group.wsdevops.location
-  resource_group_name = 
-data.azurerm_resource_group.wsdevops.name
+  resource_group_name = data.azurerm_resource_group.wsdevops.name
   sku                 = "PerGB2018"
   retention_in_days   = 30
 }
@@ -33,8 +32,7 @@ Now we can finally setup the application insight resource. The link between both
 resource "azurerm_application_insights" "appi" {
   name                = "<your prefix>-api"
   location            = data.azurerm_resource_group.wsdevops.location
-  resource_group_name = 
-data.azurerm_resource_group.wsdevops.name
+  resource_group_name = data.azurerm_resource_group.wsdevops.name
   workspace_id        = azurerm_log_analytics_workspace.log.id
   application_type    = "web"
 }
@@ -57,6 +55,7 @@ resource "null_resource" "link_monitoring" {
       con_tenant_id     = TODO
       // Parameters needed for linking
       inst_key          = TODO
+      conn_str          = TODO      
       rg_name           = TODO
       web_app_name      = TODO
     }
@@ -72,13 +71,16 @@ First a few comments regarding the blocks:
    This section is used to pass terraform values to your scripting code as environment variables. The lefthand side states the name and righthand side states the terraform expression used as value. The environment variables can be used by the scripting code according to the conventions by the used scripting language. The conventions depend on the VM operating system you are using.
 
 As you have seen there are a few `TODO`s left to fill. Let's start with the parameters. The first group results from the required `az login` command. It requires (1) the id of the current service principal, (2) the tenant id and (3) the secret of the service principal. 
-All three can be obtained from the variables we introduced earlier. To reference a variable you have to state `var.<name-of-variable>`. The instrumentation key can be obtained from the created application insight resource with `azurerm_application_insights.appi.instrumentation_key`. The resource group follows the same pattern as applied earlier.
+All three can be obtained from the variables we introduced earlier. To reference a variable you have to state `var.<name-of-variable>`. The instrumentation key can be obtained from the created application insight resource with `azurerm_application_insights.appi.instrumentation_key`. The value for the connection string is `azurerm_application_insights.appi.connection_string`. The resource group name follows the same pattern as applied earlier.
 The last missing piece is our scripting code. Place the following code below the az login command:
 ```
-az webapp config appsettings set --name $web_app_name --resource-group $rg_name --settings APPINSIGHTS_INSTRUMENTATIONKEY=$inst_key APPLICATIONINSIGHTS_CONNECTION_STRING=$inst_key
-ApplicationInsightsAgent_EXTENSION_VERSION=~2
+az webapp config appsettings set --name $web_app_name --resource-group $rg_name --settings APPINSIGHTS_INSTRUMENTATIONKEY=$inst_key APPINSIGHTS_PROFILERFEATURE_VERSION=1.0.0 APPINSIGHTS_SNAPSHOTFEATURE_VERSION=1.0.0 APPLICATIONINSIGHTS_CONNECTION_STRING=$conn_str ApplicationInsightsAgent_EXTENSION_VERSION=~3 DiagnosticServices_EXTENSION_VERSION=~3 InstrumentationEngine_EXTENSION_VERSION=disabled SnapshotDebugger_EXTENSION_VERSION=disabled XDT_MicrosoftApplicationInsights_BaseExtensions=recommended XDT_MicrosoftApplicationInsights_PreemptSdk=disabled
 ```
 This command adds application settings to our web application. They constitute the link so that telemetry is forwarded.
+
+## Run your extended Infrastructure Pipeline
+
+Now it is time to run our infrastructure pipeline. After the pipeline run you should have additional app insights and log analytic resources. The pipeline run might take up to 6 minutes.
 
 ## Monitor via App Insights resource
 

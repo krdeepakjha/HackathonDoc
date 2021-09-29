@@ -5,14 +5,14 @@
 You should now have completed the following things:
 1. Setup your GitHub Account
 2. Setup the example code in your account
-3. Added the repository secrets to the example code
+3. Activated the workflows in your repository in GitHub
 
 Next you will get an overview over the example code to setup your first own Website on Azure via Terraform. This will only be the most basic infrastructure setup. If you want to learn more about the concept of a pipeline you can do it here:
 
 [https://docs.github.com/en/actions/quickstart](https://docs.github.com/en/actions/quickstart)
 
 Creating infrastructure with terraform in github actions consists of two major steps:
-1. Workflow (=Yaml file)
+1. Workflow (=Yml file)
  
     The focus of this hackathon is on terraform. Therefore, we have already programmed all required steps. But we also want to make sure you have a chance to understand the code. The next chapter therefore explains in detail what the steps in the code do.
 
@@ -375,4 +375,4 @@ terraformapply:
 In the GitHub portal you can now register additional persons that act as additional approver for the named environment. The screenshot below shows the relevant section under settings:
 <br><img src="./images/manual_approval.PNG" width="800"/><br>
 
-That was all what we wanted demonstrate. Thanks for staying with us up to now.
+Once you configure a person the workflow won't proceed until that other person has approved.That was all what we wanted demonstrate. Thanks for staying with us up to now.
