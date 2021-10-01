@@ -66,7 +66,7 @@ This is the Connection Data needed for the Azure Subscription.
 For this Hackathon we will provide you with it:
 
 Secret:
-AZURE_AD_CLIENT_ID = `#`
+AZURE_AD_CLIENT_SECRET = `#`
 ### AZURE_AD_TENANT_ID
 
 This is the Connection Data needed for the Azure Subscription.
@@ -89,8 +89,7 @@ AZURE_SUBSCRIPTION_ID = `#`
 This is the Name of the Web Application which needs to be unique globally.
 
 Secret:
-webapp=
-`your web app name`
+WEBAPP=`your web app name`
 
 If you want to know more about WebApps take a look here:
 https://docs.microsoft.com/en-us/azure/app-service/overview

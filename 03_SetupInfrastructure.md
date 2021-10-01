@@ -64,7 +64,7 @@ jobs:
 
 ## Azure Cli
 
-The pipeline we are proposing here is using Terraform to create the Service Plan on Azure.
+The pipeline we are proposing here is using Terraform to create a App Service Plan on Azure.
 
 Github Terraform Doc: 
 <br> https://github.com/hashicorp/setup-terraform
@@ -74,11 +74,11 @@ Azure AppServicePlan and WebApp:
 
 ## Pipeline Name
 
-Next we specify the Name of our GitHub Action in our Example "`name: infra`".
+Next we specify the Name of our GitHub Action in our Example "`name: Terraform`".
 
 ## Triggers
 
-The code starts by using "`on: workflow_dispatch`" which means one of the triggers to start this pipeline is to do it Manually.
+The code starts by using "`on: workflow_dispatch`" which means one of the triggers to start this pipeline is to do it manually.
 
 There are many automatic triggers you can use, to learn more about triggers check this:
 https://docs.github.com/en/actions/reference/events-that-trigger-workflows#workflow_dispatch
@@ -292,6 +292,8 @@ For Location and Resource Group Name we use the previus gathered information fro
 
 For our example we want a Linux App Service Plan with the SKU STANDARD S1
 
+To do so add the following code to `main.tf` file.
+
 ```
 resource "azurerm_app_service_plan" "sp1" {
   name                = "<your unique service plan name>"
@@ -320,9 +322,12 @@ https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/
 
 ## App Service
 
-For the App Service Definition we need a Site Configuration of "NODE|10-lts". As name we use the value of the secret that was passed as input variable. Variable references in terraform have the format `var.<name of your variable>`.
+For the App Service Definition we need a Site Configuration of "NODE|10-lts". As name we use the value of the secret that was passed as input variable.  
+Variable references in terraform have the format `var.<name of your variable>`.
 
 The Website Content will be added later over a second Pipeline.
+
+To do so add the following code to `main.tf` file.
 
 ```
 resource "azurerm_app_service" "website" {
@@ -340,6 +345,10 @@ resource "azurerm_app_service" "website" {
 
 More about App Services:
 https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/app_service
+## Commit and push to git
+
+After you have saved your changes you have to commit and push it to your repository.  
+Check chapter "Create a Commit": How to use Git Locally [here](01.5_SetupGit.md)  
 
 # 3. Run your Pipeline
 

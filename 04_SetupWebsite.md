@@ -17,7 +17,7 @@ To do so go to Actions and select the app workflow on the Left site.
 
 Now Select Run workflow on the Right side.
 
-<br><img src="./images/runWorkflow.PNG" width="800"/><br>
+<br><img src="./images/runWorkflow_app.png" width="800"/><br>
 
 ## Workflow Progress
 
